@@ -23,8 +23,20 @@ use yii\web\IdentityInterface;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
-    const STATUS_DELETED = 0;
-    const STATUS_ACTIVE = 10;
+    const STATUS_DELETED = 'deleted';
+    const STATUS_BLOCKED = 'blocked';
+    const STATUS_ACTIVE = 'registered';
+    const STATUS_INVITED = 'invited';
+
+    const ROLE_GUEST = 1;
+    const ROLE_USER = 5;
+    const ROLE_ADMIN = 'admin';
+
+
+    public function getIsAdmin()
+    {
+        return $this->role == self::ROLE_ADMIN;
+    }
 
     /**
      * @inheritdoc
@@ -51,7 +63,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED,self::STATUS_BLOCKED,self::STATUS_INVITED]],
         ];
     }
 
@@ -60,7 +72,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['id' => $id, 'status' => [self::STATUS_ACTIVE, self::STATUS_INVITED]]);
     }
 
     /**

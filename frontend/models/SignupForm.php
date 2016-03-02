@@ -10,9 +10,12 @@ use Yii;
  */
 class SignupForm extends Model
 {
-    public $username;
     public $email;
     public $password;
+    public $name;
+    public $sex;
+    public $location;
+
 
     /**
      * @inheritdoc
@@ -20,10 +23,6 @@ class SignupForm extends Model
     public function rules()
     {
         return [
-            ['username', 'filter', 'filter' => 'trim'],
-            ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
-            ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],
@@ -33,6 +32,20 @@ class SignupForm extends Model
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
+
+            ['name', 'filter', 'filter' => 'trim'],
+            ['name', 'required'],
+            ['name', 'string', 'min' => 2, 'max' => 255],
+
+            ['sex', 'filter', 'filter' => 'trim'],
+            ['sex', 'required'],
+            ['sex', 'string', 'min' => 2, 'max' => 255],
+
+            ['location', 'filter', 'filter' => 'trim'],
+            ['location', 'required'],
+            ['location', 'string', 'min' => 2, 'max' => 255],
+
+
         ];
     }
 
@@ -48,11 +61,35 @@ class SignupForm extends Model
         }
         
         $user = new User();
-        $user->username = $this->username;
         $user->email = $this->email;
         $user->setPassword($this->password);
         $user->generateAuthKey();
-        
+        $user->activate_code =  str_replace("-", "", Yii::$app->security->generateRandomString());
+        $user->name = $this->name;
+        $user->sex = $this->sex;
+        $user->location = $this->location;
+        $user->status = 'deleted';
+        $user->registration_date = time();
         return $user->save() ? $user : null;
     }
+
+    /**
+     * Signs user up with facebook.
+     *
+     * @return User|null the saved model or null if saving fails
+     */
+    public function signupFB($attributes)
+    {
+        $user = new User();
+        $user->email = $attributes['email'];
+        $user->setPassword('');
+        $user->generateAuthKey();
+        $user->name = $attributes['name'];
+        $user->status = 'registered';
+        $user->registration_date = time();
+        return $user->save() ? $user : null;
+    }
+
+
+
 }
